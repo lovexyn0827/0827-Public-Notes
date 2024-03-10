@@ -1,0 +1,22 @@
+{
+    "import": "config",
+    "name": "其他&随记", 
+    "navbar": {
+        "title": "其他&随记",
+        "home_url": "/misc/docs/"
+    }, 
+    "footer":{
+        "top":[
+            {
+                "label": "",
+                "items": [
+                    {
+                        "label": "Github仓库",
+                        "url": "https://github.com/lovexyn0827/0827-Public-Notes",
+                        "target": "_blank"
+                    }
+                ]
+            }
+        ]
+    }
+}
