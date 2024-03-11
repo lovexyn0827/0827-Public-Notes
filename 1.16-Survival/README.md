@@ -1,7 +1,9 @@
 ---
+title: Minecraft 1.16生存
+date: false
 keywords: Minecraft, 生存, 生电, 实况, lovexyn0827
 desc: 迟来的疫情时期的1.15生存最终总结
-id: 1_16_survival:0
+id: 1_16_longterm:0
 draft: false
 ---
 

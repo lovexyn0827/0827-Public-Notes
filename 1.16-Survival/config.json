@@ -1,6 +1,7 @@
 {
     "import": "config",
     "name": "Minecraft 1.16生存", 
+    "source": "https://github.com/lovexyn0827/0827-Public-Notes/blob/master/1.16-Survival/", 
     "navbar": {
         "title": "Minecraft 1.16生存",
         "home_url": "/survival/docs/"

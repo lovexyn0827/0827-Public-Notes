@@ -1,6 +1,7 @@
 {
     "import": "config",
     "name": "其他&随记", 
+    "source": "https://github.com/lovexyn0827/0827-Public-Notes/blob/master/Misc/", 
     "navbar": {
         "title": "其他&随记",
         "home_url": "/misc/docs/"

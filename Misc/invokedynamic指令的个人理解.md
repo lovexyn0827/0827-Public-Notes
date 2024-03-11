@@ -1,4 +1,6 @@
 ---
+title: invokedynamic指令的个人理解
+date: false
 keywords: JVM, invokedynamic, ASM, 使用, 理解, lovexyn0827
 desc: 试着在3000字以内讲清自己对Java 7中引入的`invokedynamic`的理解。这篇文章主要是省去了一些对Java API与JVM规范的引述，并侧重于该指令本身的使用的基本思路。如有缺漏错误之处，欢迎反馈。
 id: understanding_invokedynamic:0
