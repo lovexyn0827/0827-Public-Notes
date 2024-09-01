@@ -35,7 +35,7 @@ draft: false
 
 ## 方法句柄`MethodHandle`
 
-方法句柄代表了一个对类成员的基本操作，包括读写字段和调用方法等。可以认为，一个方法句柄包含了一个具体成员的位置与其执行的具体操作两个属性。
+方法句柄代表了一个对类成员的基本操作，包括读写字段（等价于getter或setter）和调用方法等。可以认为，一个方法句柄包含了一个具体成员的位置与其执行的具体操作两个属性。
 
 可以通过由`java.invoke.MethodHandles.lookup()`方法获取的`MethodHandles.Lookup`实例中提供的工厂方法获取`MethodHandle`实例。那些工厂方法大致可以分为两类，一类是名称类似`findXXX()`的方法，支持使用类似于反射的方式获取方法句柄；另一类工厂方法的名称类似于`unflectXXX()`，支持为已有的`Field`或`Method`对象指定具体操作以将其转换为方法句柄。
 
@@ -43,7 +43,7 @@ draft: false
 
 第二类工厂方法的形式比较简单，只接受一个`Field`或`Method`实例，此处不再细说。
 
-另外，这些工厂方法在执行时通常会检查曾获取所用的`Lookup`实例的类是否能访问目标成员，如果失败则抛出一个`IllegalAccessException`。在Java 9及以后的版本中，我们可以使用`privateLookupIn()`工厂方法获取可以访问调用类以外的其他类的私有成员的`Lookup`实例。对于第二类工厂方法，我们可以预先在用到的反射对象上调用`setAccessible(true)`来禁用这一访问检查，或许这也是Java 8中唯一可以获取任意方法句柄的方案。
+另外，这些工厂方法在执行时通常会检查曾获取所用的`Lookup`实例的类是否能访问目标成员，如果失败则抛出一个`IllegalAccessException`。在Java 9及以后的版本中，我们可以使用`privateLookupIn()`工厂方法获取可以访问调用类以外的其他类的私有成员的`Lookup`实例。对于第二类工厂方法，我们可以预先在用到的反射对象上调用`setAccessible(true)`来禁用这一访问检查，或许这也是Java 8中唯一可以获取任意私有方法句柄的方案。
 
 `MethodHandles`类中也提供了多个工厂方法以获取或变换一些方法句柄，此处不再赘述。
 
@@ -51,7 +51,7 @@ draft: false
 
 ## 调用站点`CallSite`
 
-调用站点是一个方法句柄的容器，方法句柄只有被包含在调用站点中时才可以在`invokedynamic`指令中使用。
+调用站点是一个方法句柄的容器，可以在需要时提供一个`MethodHandle`实例。方法句柄只有被包含在调用站点中时才可以在`invokedynamic`指令中使用。
 
 调用站点可以是可变的（`MutableCallSite`，`VolatileCallSite`），也可以是不可变的（`ConstantCallSite`）。不可变的调用站点可能会更高效，因为JVM可以对其进行一些优化。
 
@@ -78,7 +78,7 @@ protected static CallSite methodBSM(MethodHandles.Lookup lookup, String name, Me
 Java 11中也允许借助动态常量技术使用其他类型的附加参数，此处不再赘述。
 在执行该方法时，传入的参数依次是：
 
-- 由`invokedynamic`所在类通过`MethodHandles.lookup()`工厂方法获取的`MethodHandle`实例；
+- 由`invokedynamic`所在类通过`MethodHandles.lookup()`工厂方法获取的`MethodHandles.Lookup`实例；
 - 为`invokedynamic`指令指定的名称；
 - 描述该`invokedynamic`行为的方法描述符
 - 附加的零至多个参数
@@ -101,7 +101,8 @@ invokedynamic index_1 index_2 0 0
 - `invokedynamic`的名称与对应的方法描述符；
 - `BootstrapMethod`方法信息，可以指定一个静态方法或构造器；
 - `BootstrapMethod`方法的附加参数。
-  某种意义上也就是说，这三项信息是`invokedynamic`方法的固定参数。
+
+某种意义上也就是说，这三项信息是`invokedynamic`方法的固定参数。
 
 ---
 
@@ -131,7 +132,7 @@ public Handle(int tag, String owner, String name, String descriptor,
               boolean isInterface)
 ````
 
-- `tag`：用于描述该`Handle`类型的一个数学，决定了其对应的`MethodHandle`的行为，可以将ASM库中`Opcodes`接口中名为的`H_XXX`字段（如`Opcodes.H_GETFIELD`）传入，在对JVM有所了解的前提下从名称分析其含义还是比较简单的。
+- `tag`：用于描述该`Handle`类型的一个数字，决定了其对应的`MethodHandle`的行为，可以将ASM库中`Opcodes`接口中名为的`H_XXX`字段（如`Opcodes.H_GETFIELD`）传入，在对JVM有所了解的前提下从名称分析其含义还是比较简单的。
 - `owner`：包含目标成员的类的内部名称。
 - `name`：目标成员的名称。
 - `descriptor`：描述该`invokedynamic`指令行为的方法描述符。
@@ -147,19 +148,19 @@ Tree API中的`InvokeDynamicInsnNode`对应一个`invokedynamic`指令，使用�
 
 在Java语言中`invokedynamic`指令两个最常见个用途是实现Lambda表达式与方法引用，具体的实现方式超出了本文的范围，本文中不再详述。
 
-此处我们真正要探讨的是`invokedynamic`自身的应用。
+此处我们真正要探讨的是`invokedynamic`这个指令自身的用法。
 举个例子，假设一个应用程序需要从一个配置文件中获取真正的`Main`类，那么这个应用的入口类可以用反射这样实现:
 
 ````java
 public Class EntryPoint {
     public static void main(String[] args) throws Throwable ​{
         String main = getMainFromConfig(2023);
-         Class.forName(main)
+        Class.forName(main)
                 .getMethod("main", String[].class)
                 .invoke(null, args);
     }
 
-    private static String getMainFromConfig() {
+    private static String getMainFromConfig(int addr) {
         // ...
     }
 }
